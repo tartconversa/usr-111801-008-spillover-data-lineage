@@ -11,6 +11,16 @@ class ExchangeFlowTest(unittest.TestCase):
         self.service = Exchange(Path(self.temp.name) / "exchange.db")
         self.service.catalog.register("flow", "机构甲", "甲地", "restricted", [("count", "通行计数", "integer", False)], "2026-11-01")
         self.service.catalog.ingest("item-1", "flow", {"count": 8}, "2026-11-02")
+        self.service.spatial.register_unit("jia", "甲地", "city", "2026-11-01")
+        self.service.calibers.define(
+            "cal-flow", "通行计数", "count", "闸机计数汇总", "2026-10-01", "2026-10-31",
+            "day", ["jia"], "仅含闸机记录", "不含人工通道", "机构甲", "2026-11-01", "机构甲",
+        )
+        self.service.calibers.bind_asset("item-1", "cal-flow", "2026-11-02", "机构甲")
+        self.service.attribution.issue(
+            "lic-1", "flow", "数据来源：机构甲", True, "仅限运行协调用途", "2027-12-31",
+            "2026-11-02", "机构甲",
+        )
         self.service.grants.issue("g-1", "flow", "机构乙", "运行协调", "2026-12-31", "2026-11-03")
         self.service.policies.set("甲地", "restricted", "运行协调", "allow", "2026-11-03", "机构甲")
         self.revision = self.service.products.assemble("report", "通行观察", ["item-1"], "2026-11-04", "机构甲")
